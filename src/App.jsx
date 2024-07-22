@@ -25,10 +25,15 @@ function App() {
         return;
       }
       axios.post('http://localhost:5000/handle', {
-        image: imageUrl,
+        pdfinfo: imageUrl,
+        tyoe: drawingValue,
+        level: levelValue,
+        numberone: accumulationValue,
+        numbertwo: storageValue,
+        numberthree: floodValue
       }, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
         },
       })
         .then(response => {
