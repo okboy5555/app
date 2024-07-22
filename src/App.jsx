@@ -24,7 +24,7 @@ function App() {
         message.error('请补充外界参数');
         return;
       }
-      axios.post('/your-upload-api-endpoint', {
+      axios.post('http://localhost:5000/handle', {
         image: imageUrl,
       }, {
         headers: {
