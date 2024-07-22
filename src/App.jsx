@@ -11,6 +11,7 @@ function App() {
   const [storageValue, setStorageValue] = useState(null);
   const [floodValue, setFloodValue] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
+  const [res, setRes] = useState([]);
 
   const next = () => {
     if (step === 2) {
@@ -37,7 +38,7 @@ function App() {
         },
       })
         .then(response => {
-          message.success('Upload successful!');
+          setRes(response?.data?.result || []);
           setStep(5);
         })
         .catch(error => {
@@ -157,10 +158,15 @@ function App() {
       }
       {
         step === 5 && <div>
-          <Image
+          {/* <Image
             width={200}
             src={imageUrl}
-          />
+          /> */}
+          {
+            res.map((item) => {
+              <Image src={item?.path}></Image>
+            })
+          }
         </div>
       }
       <div className="submit">
