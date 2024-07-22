@@ -49,11 +49,11 @@
 .submit {
   position: absolute;
   margin-top: 50px;
-  bottom: 400px;
+  bottom: 100px;
 }
 
 .steps {
-  margin-bottom: 200px;
+  margin-bottom: 30px;
   width: 600px;
 }
 
