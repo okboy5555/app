@@ -1,42 +1,81 @@
 import logo from './logo.svg';
 import './App.css';
-import { useState } from 'react';
-import { Steps, Upload, Button, Radio, message, Input, Spin } from "antd";
+import { useEffect, useState } from 'react';
+import { Steps, Upload, Button, Radio, message, Input, Spin, Image } from "antd";
 import { UploadOutlined } from '@ant-design/icons';
+import axios from 'axios';
 
 function App() {
   const [step, setStep] = useState(0);
   const [radioValue, setRadioValue] = useState(0);
+  const [imageUrl, setImageUrl] = useState(null);
 
   const next = () => {
-    setStep(step + 1);
+    if (step === 2) {
+      if (!imageUrl || imageUrl === '') {
+        message.error('请上传图片');
+        return
+      }
+    };
     if (step === 3) {
-      console.log('111')
+      axios.post('/your-upload-api-endpoint', {
+        image: imageUrl,
+      }, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+        .then(response => {
+          message.success('Upload successful!');
+        })
+        .catch(error => {
+          setStep(5);
+          message.error('Upload failed!');
+        });
     }
+    setStep(step + 1);
   };
 
   const onChange = (e) => {
     setRadioValue(e.target.value);
   };
 
-  // 上传参数
-  const props = {
-    name: 'file',
-    action: 'https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload',
-    headers: {
-      authorization: 'authorization-text',
-    },
-    onChange(info) {
-      if (info.file.status !== 'uploading') {
-        console.log(info.file, info.fileList);
-      }
-      if (info.file.status === 'done') {
-        message.success(`${info.file.name} file uploaded successfully`);
-      } else if (info.file.status === 'error') {
-        message.error(`${info.file.name} file upload failed.`);
-      }
-    },
-  };
+  useEffect(() => {
+    console.log(imageUrl, 'imageUrl')
+  }, [imageUrl])
+
+  useEffect(() => {
+
+  }, []);
+
+  const handleUpload = (info) => {
+    // eslint-disable-next-line no-restricted-globals
+    const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file.');
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      const imageUrl = e.target.result;
+      setImageUrl(imageUrl);
+      // imgElement.src = imageUrl;
+      // imgElement.style.display = 'block';
+      console.log('Image URL:', imageUrl);
+    };
+
+    reader.onerror = function () {
+      alert('Failed to read the file!');
+    };
+
+    reader.readAsDataURL(file);
+  }
 
   return (
     <div className="App">
@@ -66,13 +105,17 @@ function App() {
           <Radio value={3}>D</Radio>
         </Radio.Group></div>}
       {step === 2 && <div>
-        <Upload {...props}>
-          <Button icon={<UploadOutlined />}>Click to Upload</Button>
-        </Upload>
+        <div className="uploadPic">
+          <input type="file" accept="image/*" id="fileInput" onChange={handleUpload} />
+        </div>
+        <Image
+          width={200}
+          src={imageUrl}
+        />
       </div>}
       {step === 3 && <div>
-        <div>
-          <div>等级</div>
+        <div style={{ marginBottom: '20px' }}>
+          <div>选择大坝等级</div>
           <Radio.Group onChange={onChange} value={radioValue}>
             <Radio value={0}>A</Radio>
             <Radio value={1}>B</Radio>
@@ -81,13 +124,29 @@ function App() {
           </Radio.Group>
         </div>
         <div>
-          波高
+          请输入水库的累积概率1%的波高(h1%)
         </div>
-        <Input placeholder="Basic usage" />
+        <Input placeholder="" style={{ marginBottom: '20px' }} />
+        <div>
+          波浪中心至正常蓄水位的高度(hz1)
+        </div>
+        <Input placeholder="" style={{ marginBottom: '20px' }} />
+        <div>
+          请输入波浪中心线至校核洪水位的高度(hz2)
+        </div>
+        <Input placeholder="" style={{ marginBottom: '20px' }} />
       </div>}
       {
         step === 4 && <div>
           <Spin />
+        </div>
+      }
+      {
+        step === 5 && <div>
+          <Image
+            width={200}
+            src={imageUrl}
+          />
         </div>
       }
       <div className="submit">
