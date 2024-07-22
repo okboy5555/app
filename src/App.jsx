@@ -66,10 +66,10 @@ function App() {
       return;
     }
 
-    if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file.');
-      return;
-    }
+    // if (!file.type.startsWith('image/')) {
+    //   alert('Please upload an image file.');
+    //   return;
+    // }
 
     const reader = new FileReader();
 
@@ -116,7 +116,7 @@ function App() {
       {step === 2 && <div>
         <div className="uploadPic">
           <div style={{ marginBottom: '20px' }}>选择图纸</div>
-          <input type="file" accept="image/*" id="fileInput" onChange={handleUpload} />
+          <input type="file" id="fileInput" onChange={handleUpload} />
         </div>
         {imageUrl && <Image
           width={200}
