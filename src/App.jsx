@@ -1,13 +1,15 @@
-import logo from './logo.svg';
 import './App.css';
 import { useEffect, useState } from 'react';
-import { Steps, Upload, Button, Radio, message, Input, Spin, Image } from "antd";
-import { UploadOutlined } from '@ant-design/icons';
+import { Steps, Button, Radio, message, Input, Spin, Image } from "antd";
 import axios from 'axios';
 
 function App() {
   const [step, setStep] = useState(0);
-  const [radioValue, setRadioValue] = useState(0);
+  const [drawingValue, setDrawingValue] = useState(0);
+  const [levelValue, setLevelValue] = useState(0);
+  const [accumulationValue, setAccumulationValue] = useState(null);
+  const [storageValue, setStorageValue] = useState(null);
+  const [floodValue, setFloodValue] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
 
   const next = () => {
@@ -18,6 +20,10 @@ function App() {
       }
     };
     if (step === 3) {
+      if (!accumulationValue || !storageValue || !floodValue) {
+        message.error('请补充外界参数');
+        return;
+      }
       axios.post('/your-upload-api-endpoint', {
         image: imageUrl,
       }, {
@@ -27,6 +33,7 @@ function App() {
       })
         .then(response => {
           message.success('Upload successful!');
+          setStep(5);
         })
         .catch(error => {
           setStep(5);
@@ -36,9 +43,13 @@ function App() {
     setStep(step + 1);
   };
 
-  const onChange = (e) => {
-    setRadioValue(e.target.value);
+  const onDrawingChange = (e) => {
+    setDrawingValue(e.target.value);
   };
+
+  const onLevelChange = (e) => {
+    setLevelValue(e.target.value)
+  }
 
   useEffect(() => {
     console.log(imageUrl, 'imageUrl')
@@ -98,43 +109,41 @@ function App() {
         <div>
         </div>}
       {step === 1 && <div>
-        <Radio.Group onChange={onChange} value={radioValue}>
-          <Radio value={0}>A</Radio>
-          <Radio value={1}>B</Radio>
-          <Radio value={2}>C</Radio>
-          <Radio value={3}>D</Radio>
+        <Radio.Group onChange={onDrawingChange} value={drawingValue}>
+          <Radio value={0}>水利图纸</Radio>
+          <Radio value={1}>电气图纸</Radio>
         </Radio.Group></div>}
       {step === 2 && <div>
         <div className="uploadPic">
+          <div style={{ marginBottom: '20px' }}>选择图纸</div>
           <input type="file" accept="image/*" id="fileInput" onChange={handleUpload} />
         </div>
-        <Image
+        {imageUrl && <Image
           width={200}
           src={imageUrl}
-        />
+        />}
       </div>}
       {step === 3 && <div>
         <div style={{ marginBottom: '20px' }}>
           <div>选择大坝等级</div>
-          <Radio.Group onChange={onChange} value={radioValue}>
-            <Radio value={0}>A</Radio>
-            <Radio value={1}>B</Radio>
-            <Radio value={2}>C</Radio>
-            <Radio value={3}>D</Radio>
+          <Radio.Group onChange={onLevelChange} value={levelValue}>
+            <Radio value={0}>1</Radio>
+            <Radio value={1}>2</Radio>
+            <Radio value={2}>3</Radio>
           </Radio.Group>
         </div>
         <div>
           请输入水库的累积概率1%的波高(h1%)
         </div>
-        <Input placeholder="" style={{ marginBottom: '20px' }} />
+        <Input placeholder="" style={{ marginBottom: '20px' }} value={accumulationValue} onChange={(e) => setAccumulationValue(e.target.value)} />
         <div>
           波浪中心至正常蓄水位的高度(hz1)
         </div>
-        <Input placeholder="" style={{ marginBottom: '20px' }} />
+        <Input placeholder="" style={{ marginBottom: '20px' }} value={storageValue} onChange={(e) => setStorageValue(e.target.value)} />
         <div>
           请输入波浪中心线至校核洪水位的高度(hz2)
         </div>
-        <Input placeholder="" style={{ marginBottom: '20px' }} />
+        <Input placeholder="" style={{ marginBottom: '20px' }} value={floodValue} onChange={(e) => setFloodValue(e.target.value)} />
       </div>}
       {
         step === 4 && <div>
