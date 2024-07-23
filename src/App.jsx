@@ -11,6 +11,7 @@ function App() {
   const [storageValue, setStorageValue] = useState(null);
   const [floodValue, setFloodValue] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
+  const [res, setRes] = useState([]);
 
   const next = () => {
     if (step === 2) {
@@ -25,14 +26,20 @@ function App() {
         return;
       }
       axios.post('http://localhost:5000/handle', {
-        image: imageUrl,
+        pdfinfo: imageUrl,
+        tyoe: drawingValue,
+        level: levelValue,
+        numberone: accumulationValue,
+        numbertwo: storageValue,
+        numberthree: floodValue
       }, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
         },
       })
         .then(response => {
-          message.success('Upload successful!');
+          setRes(response?.data?.result || []);
+          console.log(response?.data?.result, 'xxx')
           setStep(5);
         })
         .catch(error => {
@@ -152,10 +159,16 @@ function App() {
       }
       {
         step === 5 && <div>
-          <Image
-            width={200}
-            src={imageUrl}
-          />
+          {
+            res.map((item) => 
+              <Image width={200} src={item?.path}></Image>
+            )
+          }
+          {
+            res.map((item) => 
+              <div>{item?.info}</div>
+            )
+          }
         </div>
       }
       <div className="submit">
