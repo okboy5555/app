@@ -1,6 +1,6 @@
 import './App.css';
 import { useEffect, useState } from 'react';
-import { Steps, Button, Radio, message, Input, Spin, Image } from "antd";
+import { Steps, Button, Radio, message, Input, Spin, Image, Collapse } from "antd";
 import axios from 'axios';
 
 function App() {
@@ -10,13 +10,14 @@ function App() {
   const [accumulationValue, setAccumulationValue] = useState(null);
   const [storageValue, setStorageValue] = useState(null);
   const [floodValue, setFloodValue] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
+  const [pdfinfo, setPdfinfo] = useState(null);
+  const [dwgInfo, setDwgInfo] = useState(null);
   const [res, setRes] = useState([]);
 
   const next = () => {
     if (step === 2) {
-      if (!imageUrl || imageUrl === '') {
-        message.error('请上传图片');
+      if (!pdfinfo && !dwgInfo) {
+        message.error('请上传文件');
         return
       }
     };
@@ -26,7 +27,8 @@ function App() {
         return;
       }
       axios.post('http://localhost:5000/handle', {
-        pdfinfo: imageUrl,
+        pdfinfo: pdfinfo,
+        dwgInfo: dwgInfo,
         tyoe: drawingValue,
         level: levelValue,
         numberone: accumulationValue,
@@ -38,7 +40,16 @@ function App() {
         },
       })
         .then(response => {
-          setRes(response?.data?.result || []);
+          const _temp = response?.data?.result || [];
+          const temp = [];
+          _temp.forEach((item, index) => {
+            temp.push({
+              key: index,
+              label: <img style={{ width: '400px' }} src={item.path}></img>,
+              children: item.info,
+            })
+          });
+          setRes(temp || []);
           console.log(response?.data?.result, 'xxx')
           setStep(5);
         })
@@ -59,10 +70,6 @@ function App() {
   }
 
   useEffect(() => {
-    console.log(imageUrl, 'imageUrl')
-  }, [imageUrl])
-
-  useEffect(() => {
 
   }, []);
 
@@ -73,30 +80,39 @@ function App() {
       return;
     }
 
-    // if (!file.type.startsWith('image/')) {
-    //   alert('Please upload an image file.');
-    //   return;
-    // }
+    const allowedExtensions = ['pdf', 'dwg'];
+    const allowedMimeTypes = ['application/pdf', 'application/acad', 'application/x-acad', 'application/autocad_dwg', 'image/vnd.dwg'];
 
-    const reader = new FileReader();
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    const fileType = file.type;
 
-    reader.onload = function (e) {
-      const imageUrl = e.target.result;
-      setImageUrl(imageUrl);
-      // imgElement.src = imageUrl;
-      // imgElement.style.display = 'block';
-      console.log('Image URL:', imageUrl);
-    };
+    if (allowedExtensions.includes(fileExtension) && allowedMimeTypes.includes(fileType)) {
+      const reader = new FileReader();
 
-    reader.onerror = function () {
-      alert('Failed to read the file!');
-    };
+      reader.onload = function (e) {
+        const fileUrl = e.target.result;
+        if (fileExtension === 'pdf') {
+          setPdfinfo(fileUrl);
+        }
+        if (fileExtension === 'dwg') {
+          setDwgInfo(fileUrl);
+        }
+      };
 
-    reader.readAsDataURL(file);
+      reader.onerror = function () {
+        alert('Failed to read the file!');
+      };
+
+      reader.readAsDataURL(file);
+    } else {
+      message.error('请上传pdf或dwg格式文件');
+    }
+
   }
 
   return (
     <div className="App">
+      <img src="https://gw.alicdn.com/imgextra/i3/O1CN01kFVvxH1LGAND6TJAe_!!6000000001271-0-tps-5443-3248.jpg" className='img' />
       {step > 0 && step < 4 && <Steps
         className="steps"
         current={step - 1}
@@ -125,10 +141,6 @@ function App() {
           <div style={{ marginBottom: '20px' }}>选择图纸</div>
           <input type="file" id="fileInput" onChange={handleUpload} />
         </div>
-        {imageUrl && <Image
-          width={200}
-          src={imageUrl}
-        />}
       </div>}
       {step === 3 && <div>
         <div style={{ marginBottom: '20px' }}>
@@ -159,16 +171,7 @@ function App() {
       }
       {
         step === 5 && <div>
-          {
-            res.map((item) => 
-              <Image width={200} src={item?.path}></Image>
-            )
-          }
-          {
-            res.map((item) => 
-              <div>{item?.info}</div>
-            )
-          }
+          <Collapse items={res} defaultActiveKey={['1']} />
         </div>
       }
       <div className="submit">
